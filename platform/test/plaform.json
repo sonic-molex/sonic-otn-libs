@@ -1,0 +1,205 @@
+{
+    "chassis": {
+        "components": [],
+        "fan_drawers": {
+            "fans": [
+                {
+                    "name": "FanTray0-Fan0",
+                    "speed": {
+                        "controllable": true
+                    },
+                    "status_led": {
+                        "status_led": true
+                    }
+                },
+                {
+                    "name": "FanTray0-Fan1",
+                    "speed": {
+                        "controllable": true
+                    },
+                    "status_led": {
+                        "status_led": true
+                    }
+                },
+                {
+                    "name": "FanTray0-Fan2",
+                    "speed": {
+                        "controllable": true
+                    },
+                    "status_led": {
+                        "status_led": true
+                    }
+                },
+                {
+                    "name": "FanTray0-Fan3",
+                    "speed": {
+                        "controllable": true
+                    },
+                    "status_led": {
+                        "status_led": true
+                    }
+                }
+            ],
+            "name": "FanTray0",
+            "status_led": {
+                "controllable": true
+            }
+        },
+        "modules": [
+            {
+                "components": [
+                    {
+                        "description": "Optical protection switching",
+                        "name": "OPS0-0"
+                    }
+                ],
+                "description": "OPS Card",
+                "name": "LINE-CARD0"
+            },
+            {
+                "components": [
+                    {
+                        "description": "Optical amplifier (boost)",
+                        "name": "OA1-0"
+                    },
+                    {
+                        "description": "Optical amplifier (pre)",
+                        "name": "OA1-1"
+                    },
+                    {
+                        "description": "Optical channel monitor",
+                        "name": "OCM1-0"
+                    },
+                    {
+                        "description": "Optical time domain reflectometer",
+                        "name": "OTDR1-0"
+                    }
+                ],
+                "description": "Working optical card",
+                "name": "LINE-CARD1"
+            },
+            {
+                "components": [
+                    {
+                        "description": "Optical amplifier (boost)",
+                        "name": "OA2-0"
+                    },
+                    {
+                        "description": "Optical amplifier (pre)",
+                        "name": "OA2-1"
+                    },
+                    {
+                        "description": "Optical channel monitor",
+                        "name": "OCM2-0"
+                    },
+                    {
+                        "description": "Optical time domain reflectometer",
+                        "name": "OTDR2-0"
+                    }
+                ],
+                "description": "Protection optical card",
+                "name": "LINE-CARD2"
+            },
+            {
+                "components": [
+                    {
+                        "description": "Multiplexer",
+                        "name": "MUX3-0"
+                    }
+                ],
+                "description": "Multiplexer",
+                "name": "LINE-CARD3"
+            },
+            {
+                "components": [
+                    {
+                        "description": "Performs initialization of hardware components during booting",
+                        "name": "BIOS"
+                    },
+                    {
+                        "description": "Platform managment controller for on-board components",
+                        "name": "FPGA"
+                    },
+                    {
+                        "description": "Used for managing IO modules",
+                        "name": "CPLD"
+                    },
+                    {
+                        "description": "Open network install environment",
+                        "name": "ONIE"
+                    }
+                ],
+                "description": "Supervisor module",
+                "name": "SUPERVISOR0"
+            }
+        ],
+        "name": "VM-CHASSIS",
+        "psus": [
+            {
+                "fans": [
+                    {
+                        "name": "PSU0-Fan",
+                        "speed": {
+                            "controllable": false
+                        },
+                        "status_led": {
+                            "available": false
+                        }
+                    }
+                ],
+                "name": "PSU0",
+                "status_led": {
+                    "status_led": false
+                }
+            },
+            {
+                "fans": [
+                    {
+                        "name": "PSU1-Fan",
+                        "speed": {
+                            "controllable": false
+                        },
+                        "status_led": {
+                            "available": false
+                        }
+                    }
+                ],
+                "name": "PSU1",
+                "status_led": {
+                    "status_led": false
+                }
+            }
+        ],
+        "status_led": {
+            "colors": [
+                "off",
+                "red",
+                "green",
+                "amber",
+                "red blink",
+                "green blink",
+                "amber blink"
+            ],
+            "controllable": true
+        },
+        "thermal_manager": false,
+        "thermals": [
+            {
+                "controllable": false,
+                "high-crit-threshold": false,
+                "low-crit-threshold": false,
+                "maximum-recorded": false,
+                "minimum-recorded": false,
+                "name": "System Exhaust"
+            },
+            {
+                "controllable": false,
+                "high-crit-threshold": false,
+                "low-crit-threshold": false,
+                "maximum-recorded": false,
+                "minimum-recorded": false,
+                "name": "System Board"
+            }
+        ]
+    }
+}
