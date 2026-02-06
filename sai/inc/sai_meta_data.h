@@ -246,6 +246,104 @@ public:
     const uint64_t freq;
 };
 
+class otn_wss_obj : public otn_obj
+{
+public:
+    otn_wss_obj(sai_id_map_t &sai_id_map) :
+        otn_obj(sai_id_map, SAI_OBJECT_TYPE_OTN_WSS),
+        lower_frequency(0),
+        upper_frequency(0),
+        admin_state(SAI_OTN_WSS_ADMIN_STATE_ENABLED),
+        super_channel(false),
+        super_channel_parent(0),
+        ase_control_mode(SAI_OTN_WSS_ASE_CONTROL_MODE_AUTO_ASE_FAILURE_AND_RESTORE),
+        ase_injection_mode(SAI_OTN_WSS_ASE_INJECTION_MODE_THRESHOLD),
+        ase_injection_threshold(0),
+        ase_injection_delta(0),
+        media_channel_injection_offset(0),
+        attenuation_control_mode(SAI_OTN_WSS_ATTENUATION_CONTROL_MODE_ATTENUATION_SET_ATTENUATION),
+        attenuation_control_range(SAI_OTN_WSS_ATTENUATION_CONTROL_RANGE_CONTROL_RANGE_FULL),
+        max_undershoot_compensation(0),
+        max_overshoot_compensation(0)
+    {
+    }
+
+    // variable
+    sai_uint64_t lower_frequency;
+    sai_uint64_t upper_frequency;
+    sai_otn_wss_admin_state_t admin_state;
+    bool super_channel;
+    sai_uint32_t super_channel_parent;
+    sai_otn_wss_ase_control_mode_t ase_control_mode;
+    sai_otn_wss_ase_injection_mode_t ase_injection_mode;
+    sai_int32_t ase_injection_threshold;
+    sai_int32_t ase_injection_delta;
+    sai_int32_t media_channel_injection_offset;
+    sai_otn_wss_attenuation_control_mode_t attenuation_control_mode;
+    sai_otn_wss_attenuation_control_range_t attenuation_control_range;
+    sai_int32_t max_undershoot_compensation;
+    sai_int32_t max_overshoot_compensation;
+    std::string source_port_name;
+    std::string dest_port_name;
+    std::map<sai_uint64_t, sai_object_id_t> spec_power_entries;  /* lower_frequency -> spec_power_id */
+};
+
+class otn_wss_spec_power_obj : public otn_obj
+{
+public:
+    otn_wss_spec_power_obj(sai_id_map_t &sai_id_map) :
+        otn_obj(sai_id_map, SAI_OBJECT_TYPE_OTN_WSS_SPEC_POWER),
+        parent_wss_id(0),
+        lower_frequency(0),
+        upper_frequency(0),
+        target_power(0),
+        attenuation(0),
+        actual_attenuation(0)
+    {
+    }
+
+    void set_parent(sai_id_map_t &sai_id_map) {
+        std::vector<sai_object_id_t> ids;
+        sai_id_map.get_ids(ids);
+
+        otn_wss_obj *parent_obj = NULL;
+        for (const auto &it : ids) {
+            sai_obj *obj = static_cast<sai_obj *>(sai_id_map.get_object(it));
+            if (obj->sai_object_type == (sai_object_type_t)SAI_OBJECT_TYPE_OTN_WSS) {
+                otn_wss_obj *obj_temp = static_cast<otn_wss_obj *>(obj);
+                if (!this->dev_name.empty() && obj_temp->source_port_name == this->dev_name) {
+                    parent_obj = obj_temp;
+                    break;
+                }
+                if (obj_temp->dev_index == this->dev_index) {
+                    parent_obj = obj_temp;
+                    break;
+                }
+            }
+        }
+
+        if (parent_obj == NULL) {
+            // Create wss device first, for future use
+            parent_obj = new otn_wss_obj(sai_id_map);
+            parent_obj->dev_index = this->dev_index;
+            if (!this->dev_name.empty()) {
+                parent_obj->source_port_name = this->dev_name;
+            }
+        }
+
+        this->parent_wss_id = parent_obj->sai_object_id;
+        parent_obj->spec_power_entries[this->lower_frequency] = this->sai_object_id;
+    }
+    
+    // variable
+    sai_object_id_t parent_wss_id;
+    sai_uint64_t lower_frequency;
+    sai_uint64_t upper_frequency;
+    sai_int32_t target_power;
+    sai_int32_t attenuation;
+    sai_int32_t actual_attenuation;
+};
+
 // TODO
 #if 0
 class otn_otdr_obj : public otn_obj

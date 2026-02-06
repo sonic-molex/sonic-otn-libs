@@ -2,6 +2,7 @@
 #include "logger.h"
 #include <iostream>
 #include <vector>
+#include <cstring>
 
 using namespace std;
 
@@ -211,9 +212,187 @@ void kvm_flow_test()
     rc = osc_api->create_otn_osc(&osc_id, switch_id, attr_list.size(), attr_list.data());
     cout << "create_otn_osc " << osc_name << ", rc = " << rc << ", osc_id = " << osc_id << endl;
 
+    // --- WSS (Wavelength Selective Switch) ---
+    sai_otn_wss_api_t *wss_api = NULL;
+    rc = sai_api_query((sai_api_t)SAI_API_OTN_WSS, (void **)&wss_api);
+    cout << "sai_api_query, rc = " << rc << ", wss_api = " << wss_api << endl;
 
+    std::string wss_name = "WSS0-0";
+    cout << "------------------------------------------------------" << endl;
+    cout << "Creating WSS media channel " << wss_name << endl;
 
+    sai_object_id_t wss_id = -1;
+    attr_list.clear();
+    attr.id = SAI_OTN_WSS_ATTR_INDEX;
+    attr.value.u32 = 0;
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_WSS_ATTR_LOWER_FREQUENCY;
+    attr.value.u64 = 191300000;  // MHz
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_WSS_ATTR_UPPER_FREQUENCY;
+    attr.value.u64 = 196100000;  // MHz
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_WSS_ATTR_ADMIN_STATE;
+    attr.value.s32 = SAI_OTN_WSS_ADMIN_STATE_ENABLED;
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_WSS_ATTR_SOURCE_PORT_NAME;
+    memset(attr.value.chardata, 0, sizeof(attr.value.chardata));
+    memcpy(attr.value.chardata, "WSS0-IN", 8);
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_WSS_ATTR_DEST_PORT_NAME;
+    memset(attr.value.chardata, 0, sizeof(attr.value.chardata));
+    memcpy(attr.value.chardata, "WSS0-OUT", 9);
+    attr_list.push_back(attr);
 
+    rc = wss_api->create_otn_wss(&wss_id, switch_id, attr_list.size(), attr_list.data());
+    cout << "create_otn_wss, rc = " << rc << ", wss_id = " << wss_id << endl;
+
+    attr_list.clear();
+    attr.id = SAI_OTN_WSS_ATTR_INDEX;
+    attr.value.u32 = 0;
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_WSS_ATTR_LOWER_FREQUENCY;
+    attr.value.u64 = 0;
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_WSS_ATTR_OPER_STATUS;
+    attr.value.s32 = 0;
+    attr_list.push_back(attr);
+    rc = wss_api->get_otn_wss_attribute(wss_id, attr_list.size(), attr_list.data());
+    cout << "get_otn_wss_attribute, rc = " << rc << endl
+         << "  INDEX = " << attr_list[0].value.u32 << endl
+         << "  LOWER_FREQUENCY = " << attr_list[1].value.u64 << endl
+         << "  OPER_STATUS = " << attr_list[2].value.s32 << endl;
+
+    // --- WSS spectrum power entries ---
+    cout << "------------------------------------------------------" << endl;
+    cout << "Creating WSS spectrum power entries" << endl;
+
+    std::vector<sai_object_id_t> wss_spec_power_ids;
+    uint64_t spec_lower = 191300000;
+    uint64_t spec_upper = 191375000;
+    int spec_power_count = 4;
+    const char* wss_src_port = "LineIn0";
+    for (int i = 0; i < spec_power_count; i++) {
+        sai_object_id_t spec_power_id = -1;
+        attr_list.clear();
+        memset(attr.value.chardata, 0, sizeof(attr.value.chardata));
+        attr.id = SAI_OTN_WSS_SPEC_POWER_ATTR_SOURCE_PORT_NAME;
+        memcpy(attr.value.chardata, wss_src_port, strlen(wss_src_port) + 1);
+        attr_list.push_back(attr);
+        attr.id = SAI_OTN_WSS_SPEC_POWER_ATTR_LOWER_FREQUENCY;
+        attr.value.u64 = spec_lower;
+        attr_list.push_back(attr);
+        attr.id = SAI_OTN_WSS_SPEC_POWER_ATTR_UPPER_FREQUENCY;
+        attr.value.u64 = spec_upper;
+        attr_list.push_back(attr);
+        attr.id = SAI_OTN_WSS_SPEC_POWER_ATTR_TARGET_POWER;
+        attr.value.s32 = -300;  // 0.01 dBm -> -3.00 dBm
+        attr_list.push_back(attr);
+        attr.id = SAI_OTN_WSS_SPEC_POWER_ATTR_ATTENUATION;
+        attr.value.s32 = 500;   // 0.01 dB -> 5.00 dB
+        attr_list.push_back(attr);
+
+        rc = wss_api->create_otn_wss_spec_power(&spec_power_id, switch_id, attr_list.size(), attr_list.data());
+        cout << "create_otn_wss_spec_power [" << spec_lower << "," << spec_upper << "], rc = " << rc
+             << ", spec_power_id = " << spec_power_id << endl;
+        wss_spec_power_ids.push_back(spec_power_id);
+        spec_lower = spec_upper;
+        spec_upper += 75000;
+    }
+    
+    wss_spec_power_ids.clear();
+
+    // Create a second WSS (WSS0-1) for LineIn1
+    std::string wss_name2 = "WSS0-1";
+    cout << "------------------------------------------------------" << endl;
+    cout << "Creating WSS media channel " << wss_name2 << endl;
+
+    sai_object_id_t wss_id2 = -1;
+    attr_list.clear();
+    attr.id = SAI_OTN_WSS_ATTR_INDEX;
+    attr.value.u32 = 1;
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_WSS_ATTR_LOWER_FREQUENCY;
+    attr.value.u64 = 191300000;  // MHz
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_WSS_ATTR_UPPER_FREQUENCY;
+    attr.value.u64 = 196100000;  // MHz
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_WSS_ATTR_ADMIN_STATE;
+    attr.value.s32 = SAI_OTN_WSS_ADMIN_STATE_ENABLED;
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_WSS_ATTR_SOURCE_PORT_NAME;
+    memset(attr.value.chardata, 0, sizeof(attr.value.chardata));
+    memcpy(attr.value.chardata, "LineIn1", 7);
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_WSS_ATTR_DEST_PORT_NAME;
+    memset(attr.value.chardata, 0, sizeof(attr.value.chardata));
+    memcpy(attr.value.chardata, "LineOut1", 8);
+    attr_list.push_back(attr);
+
+    rc = wss_api->create_otn_wss(&wss_id2, switch_id, attr_list.size(), attr_list.data());
+    cout << "create_otn_wss, rc = " << rc << ", wss_id = " << wss_id2 << endl;
+
+    uint64_t spec_lower2 = 191337500;
+    uint64_t spec_upper2 = 191412500;
+    int spec_power_count2 = 2;
+    const char* wss_src_port2 = "LineIn1";
+    for (int i = 0; i < spec_power_count2; i++) {
+        sai_object_id_t spec_power_id = -1;
+        attr_list.clear();
+        memset(attr.value.chardata, 0, sizeof(attr.value.chardata));
+        attr.id = SAI_OTN_WSS_SPEC_POWER_ATTR_SOURCE_PORT_NAME;
+        memcpy(attr.value.chardata, wss_src_port2, strlen(wss_src_port2) + 1);
+        attr_list.push_back(attr);
+        attr.id = SAI_OTN_WSS_SPEC_POWER_ATTR_LOWER_FREQUENCY;
+        attr.value.u64 = spec_lower2;
+        attr_list.push_back(attr);
+        attr.id = SAI_OTN_WSS_SPEC_POWER_ATTR_UPPER_FREQUENCY;
+        attr.value.u64 = spec_upper2;
+        attr_list.push_back(attr);
+        attr.id = SAI_OTN_WSS_SPEC_POWER_ATTR_TARGET_POWER;
+        attr.value.s32 = -250;  // 0.01 dBm -> -2.50 dBm
+        attr_list.push_back(attr);
+        attr.id = SAI_OTN_WSS_SPEC_POWER_ATTR_ATTENUATION;
+        attr.value.s32 = 300;   // 0.01 dB -> 3.00 dB
+        attr_list.push_back(attr);
+
+        rc = wss_api->create_otn_wss_spec_power(&spec_power_id, switch_id, attr_list.size(), attr_list.data());
+        cout << "create_otn_wss_spec_power [" << spec_lower2 << "," << spec_upper2 << "], rc = " << rc
+             << ", spec_power_id = " << spec_power_id << endl;
+        wss_spec_power_ids.push_back(spec_power_id);
+        spec_lower2 = spec_upper2;
+        spec_upper2 += 75000;
+    }
+
+    for (size_t i = 0; i < wss_spec_power_ids.size(); i++) {
+        attr_list.clear();
+        attr.id = SAI_OTN_WSS_SPEC_POWER_ATTR_LOWER_FREQUENCY;
+        attr.value.u64 = 0;
+        attr_list.push_back(attr);
+        attr.id = SAI_OTN_WSS_SPEC_POWER_ATTR_ATTENUATION;
+        attr.value.s32 = 0;
+        attr_list.push_back(attr);
+        attr.id = SAI_OTN_WSS_SPEC_POWER_ATTR_ACTUAL_ATTENUATION;
+        attr.value.s32 = 0;
+        attr_list.push_back(attr);
+        rc = wss_api->get_otn_wss_spec_power_attribute(wss_spec_power_ids[i], attr_list.size(), attr_list.data());
+        cout << "get_otn_wss_spec_power_attribute spec_power_id=" << wss_spec_power_ids[i] << ", rc = " << rc
+             << ", LOWER_FREQ = " << attr_list[0].value.u64
+             << ", ATTENUATION = " << attr_list[1].value.s32
+             << ", ACTUAL_ATTENUATION = " << attr_list[2].value.s32 << endl;
+    }
+
+    // Remove WSS spec power entries then WSS
+    for (auto id : wss_spec_power_ids) {
+        rc = wss_api->remove_otn_wss_spec_power(id);
+        cout << "remove_otn_wss_spec_power " << id << ", rc = " << rc << endl;
+    }
+    rc = wss_api->remove_otn_wss(wss_id);
+    cout << "remove_otn_wss " << wss_id << ", rc = " << rc << endl;
+
+    rc = wss_api->remove_otn_wss(wss_id2);
+    cout << "remove_otn_wss " << wss_id2 << ", rc = " << rc << endl;
 
     sai_api_uninitialize();
 }

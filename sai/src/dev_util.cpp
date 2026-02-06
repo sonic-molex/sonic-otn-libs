@@ -33,6 +33,11 @@ std::map<std::string, uint32_t> dev_util::dev_map = {
     {"OTDR0-0", DEV_TYPE_OTDR},
     {"OTDR1-0", DEV_TYPE_P_OTDR},
 
+    // WSS
+    {"LineIn0", DEV_TYPE_WSS},
+    {"LineIn1", DEV_TYPE_WSS},
+    {"LineIn2", DEV_TYPE_WSS1},
+
 };
 
 uint32_t
@@ -67,10 +72,17 @@ uint32_t
 dev_util::get_dev_index(const std::string &name)
 {
     // get the second number after '-', e.g. OCM0-1|191262500 -> 1
+    // wss name format: WSS0-2|191262500 -> 2
     static std::regex re("^[^|-]+-(\\d+)");
     std::smatch match;
 
     if (std::regex_search(name, match, re)) {
+        return std::stoi(match[1]);
+    }
+
+    // fallback: trailing digits (e.g. LineIn1 -> 1)
+    static std::regex tail_re("(\\d+)$");
+    if (std::regex_search(name, match, tail_re)) {
         return std::stoi(match[1]);
     }
 

@@ -327,3 +327,147 @@ private:
     sai_uint64_t output_frequency;      // MHz
  
 };
+
+
+// ===================== WSS Spectrum Power Entry (per frequency slot) =====================
+class virtual_otn_wss_spec_power_entry {
+public:
+    virtual_otn_wss_spec_power_entry(sai_object_id_t parent_wss_id, sai_object_id_t spec_power_id)
+        : parent_wss_id(parent_wss_id),
+          sai_spec_power_id(spec_power_id),
+          lower_frequency(0),
+          upper_frequency(0),
+          target_power(0),
+          attenuation(0),
+          actual_attenuation(0)
+    {
+        logger::debug(std::string(__func__) + ", WSS " + std::to_string(parent_wss_id) +
+                      ", spec_power id " + std::to_string(spec_power_id));
+    }
+
+    ~virtual_otn_wss_spec_power_entry() {}
+
+    sai_object_id_t get_parent_wss_id() const { return parent_wss_id; }
+    sai_object_id_t get_spec_power_id() const { return sai_spec_power_id; }
+    sai_uint64_t get_lower_frequency() const { return lower_frequency; }
+    sai_uint64_t get_upper_frequency() const { return upper_frequency; }
+    sai_int32_t get_target_power() const { return target_power; }
+    sai_int32_t get_attenuation() const { return attenuation; }
+    sai_int32_t get_actual_attenuation() const { return actual_attenuation; }
+
+    void set_lower_frequency(sai_uint64_t freq) { lower_frequency = freq; }
+    void set_upper_frequency(sai_uint64_t freq) { upper_frequency = freq; }
+    void set_target_power(sai_int32_t power) { target_power = power; }
+    void set_attenuation(sai_int32_t attn) { attenuation = attn; actual_attenuation = attn; }
+    void set_actual_attenuation(sai_int32_t attn) { actual_attenuation = attn; }
+
+private:
+    sai_object_id_t parent_wss_id;
+    sai_object_id_t sai_spec_power_id;
+    sai_uint64_t lower_frequency;
+    sai_uint64_t upper_frequency;
+    sai_int32_t target_power;
+    sai_int32_t attenuation;
+    sai_int32_t actual_attenuation;
+};
+
+
+// ===================== WSS Device (media channel) =====================
+class virtual_otn_wss_device : public virtual_otn_device {
+public:
+    virtual_otn_wss_device(sai_object_id_t id, sai_object_type_extensions_t type)
+        : virtual_otn_device(id, type),
+          attr_index(0),
+          attr_lower_frequency(0),
+          attr_upper_frequency(0),
+          attr_admin_state(SAI_OTN_WSS_ADMIN_STATE_ENABLED),
+          attr_super_channel(false),
+          attr_super_channel_parent(0),
+          attr_ase_control_mode(SAI_OTN_WSS_ASE_CONTROL_MODE_AUTO_ASE_FAILURE_AND_RESTORE),
+          attr_ase_injection_mode(SAI_OTN_WSS_ASE_INJECTION_MODE_THRESHOLD),
+          attr_ase_injection_threshold(0),
+          attr_ase_injection_delta(0),
+          attr_media_channel_injection_offset(0),
+          attr_attenuation_control_mode(SAI_OTN_WSS_ATTENUATION_CONTROL_MODE_ATTENUATION_SET_ATTENUATION),
+          attr_attenuation_control_range(SAI_OTN_WSS_ATTENUATION_CONTROL_RANGE_CONTROL_RANGE_FULL),
+          attr_max_undershoot_compensation(0),
+          attr_max_overshoot_compensation(0),
+          attr_oper_status(SAI_OTN_WSS_OPER_STATUS_UP),
+          attr_ase_status(SAI_OTN_WSS_ASE_STATUS_NOT_PRESENT)
+    {
+        logger::debug(std::string(__func__) + ", WSS Device created with ID " + std::to_string(id));
+    }
+
+    virtual ~virtual_otn_wss_device() {}
+
+    // WSS media channel attribute setters
+    void set_index(sai_uint32_t idx) { attr_index = idx; }
+    void set_lower_frequency(sai_uint64_t freq) { attr_lower_frequency = freq; }
+    void set_upper_frequency(sai_uint64_t freq) { attr_upper_frequency = freq; }
+    void set_admin_state(sai_otn_wss_admin_state_t state) { attr_admin_state = state; }
+    void set_super_channel(bool super) { attr_super_channel = super; }
+    void set_super_channel_parent(sai_uint32_t parent) { attr_super_channel_parent = parent; }
+    void set_ase_control_mode(sai_otn_wss_ase_control_mode_t mode) { attr_ase_control_mode = mode; }
+    void set_ase_injection_mode(sai_otn_wss_ase_injection_mode_t mode) { attr_ase_injection_mode = mode; }
+    void set_ase_injection_threshold(sai_int32_t val) { attr_ase_injection_threshold = val; }
+    void set_ase_injection_delta(sai_int32_t val) { attr_ase_injection_delta = val; }
+    void set_media_channel_injection_offset(sai_int32_t val) { attr_media_channel_injection_offset = val; }
+    void set_attenuation_control_mode(sai_otn_wss_attenuation_control_mode_t mode) { attr_attenuation_control_mode = mode; }
+    void set_attenuation_control_range(sai_otn_wss_attenuation_control_range_t range) { attr_attenuation_control_range = range; }
+    void set_max_undershoot_compensation(sai_int32_t val) { attr_max_undershoot_compensation = val; }
+    void set_max_overshoot_compensation(sai_int32_t val) { attr_max_overshoot_compensation = val; }
+    void set_source_port_name(const std::string& name) { attr_source_port_name = name; }
+    void set_dest_port_name(const std::string& name) { attr_dest_port_name = name; }
+    void set_oper_status(sai_otn_wss_oper_status_t status) { attr_oper_status = status; }
+    void set_ase_status(sai_otn_wss_ase_status_t status) { attr_ase_status = status; }
+
+    // WSS media channel attribute getters
+    sai_uint32_t get_index() const { return attr_index; }
+    sai_uint64_t get_lower_frequency() const { return attr_lower_frequency; }
+    sai_uint64_t get_upper_frequency() const { return attr_upper_frequency; }
+    sai_otn_wss_admin_state_t get_admin_state() const { return attr_admin_state; }
+    bool get_super_channel() const { return attr_super_channel; }
+    sai_uint32_t get_super_channel_parent() const { return attr_super_channel_parent; }
+    sai_otn_wss_ase_control_mode_t get_ase_control_mode() const { return attr_ase_control_mode; }
+    sai_otn_wss_ase_injection_mode_t get_ase_injection_mode() const { return attr_ase_injection_mode; }
+    sai_int32_t get_ase_injection_threshold() const { return attr_ase_injection_threshold; }
+    sai_int32_t get_ase_injection_delta() const { return attr_ase_injection_delta; }
+    sai_int32_t get_media_channel_injection_offset() const { return attr_media_channel_injection_offset; }
+    sai_otn_wss_attenuation_control_mode_t get_attenuation_control_mode() const { return attr_attenuation_control_mode; }
+    sai_otn_wss_attenuation_control_range_t get_attenuation_control_range() const { return attr_attenuation_control_range; }
+    sai_int32_t get_max_undershoot_compensation() const { return attr_max_undershoot_compensation; }
+    sai_int32_t get_max_overshoot_compensation() const { return attr_max_overshoot_compensation; }
+    const std::string& get_source_port_name() const { return attr_source_port_name; }
+    const std::string& get_dest_port_name() const { return attr_dest_port_name; }
+    sai_otn_wss_oper_status_t get_oper_status() const { return attr_oper_status; }
+    sai_otn_wss_ase_status_t get_ase_status() const { return attr_ase_status; }
+
+    // Spectrum power entry management (child of WSS)
+    sai_status_t add_spec_power(sai_object_id_t spec_power_id, sai_object_id_t wss_id);
+    sai_status_t remove_spec_power(sai_object_id_t spec_power_id);
+    virtual_otn_wss_spec_power_entry* get_spec_power(sai_object_id_t spec_power_id);
+    sai_status_t remove_all_spec_power();
+    size_t get_spec_power_count() const { return spec_power_entries.size(); }
+
+private:
+    sai_uint32_t attr_index;
+    sai_uint64_t attr_lower_frequency;
+    sai_uint64_t attr_upper_frequency;
+    sai_otn_wss_admin_state_t attr_admin_state;
+    bool attr_super_channel;
+    sai_uint32_t attr_super_channel_parent;
+    sai_otn_wss_ase_control_mode_t attr_ase_control_mode;
+    sai_otn_wss_ase_injection_mode_t attr_ase_injection_mode;
+    sai_int32_t attr_ase_injection_threshold;
+    sai_int32_t attr_ase_injection_delta;
+    sai_int32_t attr_media_channel_injection_offset;
+    sai_otn_wss_attenuation_control_mode_t attr_attenuation_control_mode;
+    sai_otn_wss_attenuation_control_range_t attr_attenuation_control_range;
+    sai_int32_t attr_max_undershoot_compensation;
+    sai_int32_t attr_max_overshoot_compensation;
+    std::string attr_source_port_name;
+    std::string attr_dest_port_name;
+    sai_otn_wss_oper_status_t attr_oper_status;
+    sai_otn_wss_ase_status_t attr_ase_status;
+    std::unordered_map<sai_object_id_t, std::unique_ptr<virtual_otn_wss_spec_power_entry>> spec_power_entries;
+};

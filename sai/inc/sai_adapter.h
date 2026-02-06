@@ -130,6 +130,34 @@ public:
             sai_object_id_t otn_osc_id,
             uint32_t attr_count,
             sai_attribute_t *attr_list);
+
+    // OTN WSS
+    static sai_status_t create_otn_wss(
+            sai_object_id_t *otn_wss_id,
+            sai_object_id_t switch_id,
+            uint32_t attr_count,
+            const sai_attribute_t *attr_list);
+    static sai_status_t remove_otn_wss(sai_object_id_t otn_wss_id);
+    static sai_status_t set_otn_wss_attribute(
+            sai_object_id_t otn_wss_id,
+            const sai_attribute_t *attr);
+    static sai_status_t get_otn_wss_attribute(
+            sai_object_id_t otn_wss_id,
+            uint32_t attr_count,
+            sai_attribute_t *attr_list);
+    static sai_status_t create_otn_wss_spec_power(
+            sai_object_id_t *otn_wss_spec_power_id,
+            sai_object_id_t switch_id,
+            uint32_t attr_count,
+            const sai_attribute_t *attr_list);
+    static sai_status_t remove_otn_wss_spec_power(sai_object_id_t otn_wss_spec_power_id);
+    static sai_status_t set_otn_wss_spec_power_attribute(
+            sai_object_id_t otn_wss_spec_power_id,
+            const sai_attribute_t *attr);
+    static sai_status_t get_otn_wss_spec_power_attribute(
+            sai_object_id_t otn_wss_spec_power_id,
+            uint32_t attr_count,
+            sai_attribute_t *attr_list);
 #if 0
     // OTAI OTDR
     static sai_status_t create_otn_otdr(
@@ -161,6 +189,7 @@ public:
     sai_otn_oa_api_t otn_oa_api;
     sai_otn_ocm_api_t otn_ocm_api;
     sai_otn_osc_api_t otn_osc_api;
+    sai_otn_wss_api_t otn_wss_api;
     // TODO
     //sai_otn_otdr_api_t otn_otdr_api;
 
