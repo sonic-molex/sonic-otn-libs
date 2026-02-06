@@ -45,6 +45,15 @@ sai_adapter::sai_adapter()
     otn_osc_api.set_otn_osc_attribute = &sai_adapter::set_otn_osc_attribute;
     otn_osc_api.get_otn_osc_attribute = &sai_adapter::get_otn_osc_attribute;
 
+    otn_wss_api.create_otn_wss = &sai_adapter::create_otn_wss;
+    otn_wss_api.remove_otn_wss = &sai_adapter::remove_otn_wss;
+    otn_wss_api.set_otn_wss_attribute = &sai_adapter::set_otn_wss_attribute;
+    otn_wss_api.get_otn_wss_attribute = &sai_adapter::get_otn_wss_attribute;
+    otn_wss_api.create_otn_wss_spec_power = &sai_adapter::create_otn_wss_spec_power;
+    otn_wss_api.remove_otn_wss_spec_power = &sai_adapter::remove_otn_wss_spec_power;
+    otn_wss_api.set_otn_wss_spec_power_attribute = &sai_adapter::set_otn_wss_spec_power_attribute;
+    otn_wss_api.get_otn_wss_spec_power_attribute = &sai_adapter::get_otn_wss_spec_power_attribute;
+
     // TODO
     //otn_otdr_api.create_otn_otdr = &sai_adapter::create_otn_otdr;
     //otn_otdr_api.remove_otn_otdr = &sai_adapter::remove_otn_otdr;
@@ -80,6 +89,9 @@ sai_adapter::sai_api_query(sai_api_t sai_api_id, void **api_method_table)
         break;
     case SAI_API_OTN_OSC:
         *api_method_table = &otn_osc_api;
+        break;
+    case SAI_API_OTN_WSS:
+        *api_method_table = &otn_wss_api;
         break;
     //case SAI_API_OTN_OTDR:
     //    *api_method_table = &otn_otdr_api;

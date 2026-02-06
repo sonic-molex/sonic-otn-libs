@@ -51,3 +51,43 @@ virtual_otn_ocm_channel* virtual_otn_ocm_device::get_channel(sai_object_id_t cha
 }
 
 
+/* WSS Device - spectrum power entry management */
+sai_status_t virtual_otn_wss_device::add_spec_power(sai_object_id_t spec_power_id, sai_object_id_t parent_wss_id)
+{
+    if (spec_power_entries.find(spec_power_id) != spec_power_entries.end()) {
+        logger::warn(std::string(__func__) + ": Spec power already exists: " + std::to_string(spec_power_id));
+        return SAI_STATUS_ITEM_ALREADY_EXISTS;
+    }
+    spec_power_entries[spec_power_id] =
+        std::make_unique<virtual_otn_wss_spec_power_entry>(parent_wss_id, spec_power_id);
+    logger::debug(std::string(__func__) + ": Added WSS spec power " + std::to_string(spec_power_id) +
+                  " to WSS " + std::to_string(parent_wss_id));
+    return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t virtual_otn_wss_device::remove_spec_power(sai_object_id_t spec_power_id)
+{
+    auto it = spec_power_entries.find(spec_power_id);
+    if (it == spec_power_entries.end()) {
+        logger::warn(std::string(__func__) + ": Spec power not found: " + std::to_string(spec_power_id));
+        return SAI_STATUS_ITEM_NOT_FOUND;
+    }
+    spec_power_entries.erase(it);
+    logger::debug(std::string(__func__) + ": Removed WSS spec power " + std::to_string(spec_power_id));
+    return SAI_STATUS_SUCCESS;
+}
+
+virtual_otn_wss_spec_power_entry* virtual_otn_wss_device::get_spec_power(sai_object_id_t spec_power_id)
+{
+    auto it = spec_power_entries.find(spec_power_id);
+    return (it != spec_power_entries.end()) ? it->second.get() : nullptr;
+}
+
+sai_status_t virtual_otn_wss_device::remove_all_spec_power()
+{
+    logger::debug(std::string(__func__) + ": removing all spec power entries (" +
+                 std::to_string(spec_power_entries.size()) + ")");
+    spec_power_entries.clear();
+    return SAI_STATUS_SUCCESS;
+}
+
