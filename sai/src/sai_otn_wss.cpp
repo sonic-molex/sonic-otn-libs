@@ -527,3 +527,36 @@ sai_adapter::get_otn_wss_spec_power_attribute(sai_object_id_t otn_wss_spec_power
 
     return rc;
 }
+
+sai_status_t
+sai_adapter::set_otn_wss_spec_powers_attribute(uint32_t object_count,
+                                               const sai_object_id_t *object_id,
+                                               const sai_attribute_t *attr_list,
+                                               sai_bulk_op_error_mode_t mode,
+                                               sai_status_t *object_statuses)
+{
+    if (!object_id || !attr_list || !object_statuses)
+    {
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+
+    bool any_failure = false;
+    for (uint32_t i = 0; i < object_count; i++)
+    {
+        object_statuses[i] = set_otn_wss_spec_power_attribute(object_id[i], &attr_list[i]);
+        if (object_statuses[i] != SAI_STATUS_SUCCESS)
+        {
+            any_failure = true;
+            if (mode == SAI_BULK_OP_ERROR_MODE_STOP_ON_ERROR)
+            {
+                for (uint32_t j = i + 1; j < object_count; j++)
+                {
+                    object_statuses[j] = SAI_STATUS_NOT_EXECUTED;
+                }
+                break;
+            }
+        }
+    }
+
+    return any_failure ? SAI_STATUS_FAILURE : SAI_STATUS_SUCCESS;
+}

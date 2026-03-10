@@ -383,6 +383,50 @@ void kvm_flow_test()
              << ", ACTUAL_ATTENUATION = " << attr_list[2].value.s32 << endl;
     }
 
+    // Bulk set WSS spec power attenuation (one attr per object)
+    if (wss_spec_power_ids.size() >= 2 && wss_api->set_otn_wss_spec_powers_attribute) {
+        std::vector<sai_object_id_t> bulk_ids = { wss_spec_power_ids[0], wss_spec_power_ids[1] };
+        std::vector<sai_attribute_t> bulk_attrs(2);
+        std::vector<sai_status_t> bulk_statuses(2, SAI_STATUS_FAILURE);
+
+        // STOP_ON_ERROR: first object uses unsupported attr id, second should be NOT_EXECUTED.
+        bulk_attrs[0].id = static_cast<sai_attr_id_t>(0x7fffffff);
+        bulk_attrs[0].value.s32 = 0;
+        bulk_attrs[1].id = SAI_OTN_WSS_SPEC_POWER_ATTR_ATTENUATION;
+        bulk_attrs[1].value.s32 = 333; // 3.33 dB
+        rc = wss_api->set_otn_wss_spec_powers_attribute(
+            static_cast<uint32_t>(bulk_ids.size()),
+            bulk_ids.data(),
+            bulk_attrs.data(),
+            SAI_BULK_OP_ERROR_MODE_STOP_ON_ERROR,
+            bulk_statuses.data());
+        cout << "bulk set (STOP_ON_ERROR), rc = " << rc
+             << ", statuses = [" << bulk_statuses[0] << ", " << bulk_statuses[1] << "]" << endl;
+
+        // IGNORE_ERROR: first object still fails, second should succeed and update attenuation.
+        bulk_statuses.assign(2, SAI_STATUS_FAILURE);
+        bulk_attrs[1].value.s32 = 444; // 4.44 dB
+        rc = wss_api->set_otn_wss_spec_powers_attribute(
+            static_cast<uint32_t>(bulk_ids.size()),
+            bulk_ids.data(),
+            bulk_attrs.data(),
+            SAI_BULK_OP_ERROR_MODE_IGNORE_ERROR,
+            bulk_statuses.data());
+        cout << "bulk set (IGNORE_ERROR), rc = " << rc
+             << ", statuses = [" << bulk_statuses[0] << ", " << bulk_statuses[1] << "]" << endl;
+
+        // Verify second entry attenuation got updated by IGNORE_ERROR mode run.
+        attr_list.clear();
+        attr.id = SAI_OTN_WSS_SPEC_POWER_ATTR_ATTENUATION;
+        attr.value.s32 = 0;
+        attr_list.push_back(attr);
+        rc = wss_api->get_otn_wss_spec_power_attribute(wss_spec_power_ids[1], attr_list.size(), attr_list.data());
+        cout << "verify bulk set target entry attenuation, rc = " << rc
+             << ", ATTENUATION = " << attr_list[0].value.s32 << endl;
+    } else {
+        cout << "bulk set test skipped: insufficient entries or bulk API not wired" << endl;
+    }
+
     // Remove WSS spec power entries then WSS
     for (auto id : wss_spec_power_ids) {
         rc = wss_api->remove_otn_wss_spec_power(id);

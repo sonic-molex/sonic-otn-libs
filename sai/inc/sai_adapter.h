@@ -158,6 +158,12 @@ public:
             sai_object_id_t otn_wss_spec_power_id,
             uint32_t attr_count,
             sai_attribute_t *attr_list);
+    static sai_status_t set_otn_wss_spec_powers_attribute(
+            uint32_t object_count,
+            const sai_object_id_t *object_id,
+            const sai_attribute_t *attr_list,
+            sai_bulk_op_error_mode_t mode,
+            sai_status_t *object_statuses);
 #if 0
     // OTAI OTDR
     static sai_status_t create_otn_otdr(
