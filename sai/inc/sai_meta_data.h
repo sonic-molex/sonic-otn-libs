@@ -8,6 +8,7 @@
 #include <set>
 #include <regex>
 #include <optional>
+#include <cstring>
 
 
 #define NULL_HANDLE -1

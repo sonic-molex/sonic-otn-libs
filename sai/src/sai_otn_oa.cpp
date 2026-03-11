@@ -77,8 +77,10 @@ sai_adapter::set_otn_oa_attribute(sai_object_id_t otn_oa_id,
         obj->ingress_port = name + "-IN";
         obj->egress_port = name + "-OUT";
 
-        //set name in virtual device 
+        // set name and port names in virtual device (get reads from oa_dev)
         oa_dev->set_name(name);
+        oa_dev->set_ingress_port(obj->ingress_port);
+        oa_dev->set_egress_port(obj->egress_port);
 
         break;
     }
@@ -121,6 +123,18 @@ sai_adapter::set_otn_oa_attribute(sai_object_id_t otn_oa_id,
     case SAI_OTN_OA_ATTR_ENABLED:
         oa_dev->set_enabled(attr->value.booldata);
         break;
+    case SAI_OTN_OA_ATTR_MIN_GAIN:
+        oa_dev->set_min_gain(attr->value.u32);
+        break;
+    case SAI_OTN_OA_ATTR_MAX_GAIN:
+        oa_dev->set_max_gain(attr->value.u32);
+        break;
+    case SAI_OTN_OA_ATTR_MAX_OUTPUT_POWER:
+        oa_dev->set_max_output_power(attr->value.s32);
+        break;
+    case SAI_OTN_OA_ATTR_FIBER_TYPE_PROFILE:
+        oa_dev->set_fiber_type_profile((sai_otn_oa_fiber_type_profile_t)attr->value.s32);
+        break;
     default:
         rc = SAI_STATUS_NOT_SUPPORTED;
         logger::warn("unsupported otn oa attribute, " + std::to_string(attr->id));
@@ -151,17 +165,56 @@ sai_adapter::get_otn_oa_attribute(sai_object_id_t otn_oa_id,
 
     for (uint32_t i = 0; i < attr_count; i++) {
         switch (attr_list[i].id) {
+        case SAI_OTN_OA_ATTR_NAME:
+            std::strncpy(attr_list[i].value.chardata, oa_dev->get_name().c_str(), sizeof(attr_list[i].value.chardata) - 1);
+            attr_list[i].value.chardata[sizeof(attr_list[i].value.chardata) - 1] = '\0';
+            break;
+        case SAI_OTN_OA_ATTR_TYPE:
+            attr_list[i].value.s32 = oa_dev->get_type();
+            break;
+        case SAI_OTN_OA_ATTR_TARGET_GAIN:
+            attr_list[i].value.u32 = oa_dev->get_target_gain();
+            break;
+        case SAI_OTN_OA_ATTR_MIN_GAIN:
+            attr_list[i].value.u32 = oa_dev->get_min_gain();
+            break;
+        case SAI_OTN_OA_ATTR_MAX_GAIN:
+            attr_list[i].value.u32 = oa_dev->get_max_gain();
+            break;
+        case SAI_OTN_OA_ATTR_TARGET_GAIN_TILT:
+            attr_list[i].value.s32 = oa_dev->get_target_gain_tilt();
+            break;
+        case SAI_OTN_OA_ATTR_GAIN_RANGE:
+            attr_list[i].value.s32 = oa_dev->get_gain_range();
+            break;
+        case SAI_OTN_OA_ATTR_AMP_MODE:
+            attr_list[i].value.s32 = oa_dev->get_amp_mode();
+            break;
+        case SAI_OTN_OA_ATTR_TARGET_OUTPUT_POWER:
+            attr_list[i].value.s32 = oa_dev->get_target_output_power();
+            break;
+        case SAI_OTN_OA_ATTR_MAX_OUTPUT_POWER:
+            attr_list[i].value.s32 = oa_dev->get_max_output_power();
+            break;
+        case SAI_OTN_OA_ATTR_ENABLED:
+            attr_list[i].value.booldata = oa_dev->is_enabled();
+            break;
+        case SAI_OTN_OA_ATTR_FIBER_TYPE_PROFILE:
+            attr_list[i].value.s32 = oa_dev->get_fiber_type_profile();
+            break;
         case SAI_OTN_OA_ATTR_INGRESS_PORT:
-            std::strncpy(attr_list[i].value.chardata, oa_dev->get_ingress_port().c_str(), sizeof(attr_list[i].value.chardata));
+            std::strncpy(attr_list[i].value.chardata, oa_dev->get_ingress_port().c_str(), sizeof(attr_list[i].value.chardata) - 1);
+            attr_list[i].value.chardata[sizeof(attr_list[i].value.chardata) - 1] = '\0';
             break;
         case SAI_OTN_OA_ATTR_EGRESS_PORT:
-            std::strncpy(attr_list[i].value.chardata, oa_dev->get_egress_port().c_str(), sizeof(attr_list[i].value.chardata));
+            std::strncpy(attr_list[i].value.chardata, oa_dev->get_egress_port().c_str(), sizeof(attr_list[i].value.chardata) - 1);
+            attr_list[i].value.chardata[sizeof(attr_list[i].value.chardata) - 1] = '\0';
             break;
         case SAI_OTN_OA_ATTR_ACTUAL_GAIN:
-            attr_list[i].value.s32 = oa_dev->get_actual_gain();
+            attr_list[i].value.s32 = static_cast<sai_int32_t>(oa_dev->get_actual_gain());
             break;
         case SAI_OTN_OA_ATTR_ACTUAL_GAIN_TILT:
-            attr_list[i].value.s32 = oa_dev->get_actual_gain_tilt();
+            attr_list[i].value.s32 = static_cast<sai_int32_t>(oa_dev->get_actual_gain_tilt());
             break;
         case SAI_OTN_OA_ATTR_INPUT_POWER_TOTAL:
         case SAI_OTN_OA_ATTR_INPUT_POWER_C_BAND:
