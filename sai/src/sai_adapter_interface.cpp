@@ -27,4 +27,15 @@ extern "C" {
         sai_adapter *q = (sai_adapter *)p;
         return q->sai_object_type_query(sai_object_id);
     }
+
+    sai_status_t sai_adapter_query_attribute_capability(
+            S_O_Handle p,
+            sai_object_id_t switch_id,
+            sai_object_type_t object_type,
+            sai_attr_id_t attr_id,
+            sai_attr_capability_t *attr_capability)
+    {
+        sai_adapter *q = (sai_adapter *)p;
+        return q->sai_query_attribute_capability(switch_id, object_type, attr_id, attr_capability);
+    }
 }

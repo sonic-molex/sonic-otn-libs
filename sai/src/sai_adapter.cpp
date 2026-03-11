@@ -112,7 +112,8 @@ sai_adapter::sai_api_query(sai_api_t sai_api_id, void **api_method_table)
 }
 
 sai_object_type_t
-sai_adapter::sai_object_type_query(sai_object_id_t sai_object_id) {
+sai_adapter::sai_object_type_query(sai_object_id_t sai_object_id)
+{
     // top level, switch
     if (switch_metadata_ptr->switch_id == sai_object_id) {
         return SAI_OBJECT_TYPE_SWITCH;
@@ -131,4 +132,33 @@ sai_adapter::sai_object_type_query(sai_object_id_t sai_object_id) {
     }
 
     return SAI_OBJECT_TYPE_NULL;
+}
+
+sai_status_t
+sai_adapter::sai_query_attribute_capability(
+        sai_object_id_t switch_id,
+        sai_object_type_t object_type,
+        sai_attr_id_t attr_id,
+        sai_attr_capability_t *attr_capability)
+{
+    if (object_type == SAI_OBJECT_TYPE_SWITCH) {
+        switch (attr_id) {
+        case SAI_SWITCH_ATTR_OTN_ALARM_EVENT_NOTIFY:
+            attr_capability->create_implemented = false;
+            attr_capability->set_implemented = true;
+            attr_capability->get_implemented = true;
+            break;
+        default:
+            attr_capability->create_implemented = false;
+            attr_capability->set_implemented = false;
+            attr_capability->get_implemented = false;
+            break;
+        }
+    } else {
+        attr_capability->create_implemented = false;
+        attr_capability->set_implemented = false;
+        attr_capability->get_implemented = false;
+    }
+
+    return SAI_STATUS_SUCCESS;
 }

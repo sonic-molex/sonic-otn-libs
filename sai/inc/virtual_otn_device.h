@@ -64,7 +64,14 @@ public:
     
     // Setters
     void set_type(sai_otn_oa_type_t type) { attr_type = type; }
-    void set_target_gain(sai_uint32_t gain) { attr_target_gain = gain; }
+    bool set_target_gain(sai_uint32_t gain)
+    {
+        if (gain < attr_min_gain || gain > attr_max_gain) {
+            return false; // Invalid gain value
+        }
+        attr_target_gain = gain;
+        return true;
+    }
     void set_min_gain(sai_uint32_t gain) { attr_min_gain = gain; }
     void set_max_gain(sai_uint32_t gain) { attr_max_gain = gain; }
     void set_target_gain_tilt(sai_int32_t tilt) { attr_target_gain_tilt = tilt; }

@@ -93,7 +93,17 @@ sai_adapter::set_otn_oa_attribute(sai_object_id_t otn_oa_id,
         obj->set_gain = attr->value.u32;
 
         //set into virtual device
-        oa_dev->set_target_gain(attr->value.u32);
+        if (!oa_dev->set_target_gain(attr->value.u32)) {
+            /* send notification for invalid gain value */
+            std::string event_name = "Out of Gain Range";
+            std::string description = "Target gain value " + std::to_string(attr->value.u32) +
+                                      " is out of range [" + std::to_string(oa_dev->get_min_gain()) +
+                                      ", " + std::to_string(oa_dev->get_max_gain()) + "]";
+            std::vector<uint8_t> raw_data = {(uint8_t)(attr->value.u32 & 0xFF), (uint8_t)((attr->value.u32 >> 8) & 0xFF), (uint8_t)((attr->value.u32 >> 16) & 0xFF), (uint8_t)((attr->value.u32 >> 24) & 0xFF)};
+            send_alarm_event_data(obj->sai_object_id, SAI_OTN_ALARM_SEVERITY_MINOR, SAI_OTN_ALARM_ACTION_RAISE, event_name, description, raw_data);
+
+            rc = SAI_STATUS_INVALID_ATTR_VALUE_0;
+        }
         break;
     case SAI_OTN_OA_ATTR_TARGET_GAIN_TILT:
         oa_dev->set_target_gain_tilt(attr->value.s32);
@@ -140,7 +150,7 @@ sai_adapter::set_otn_oa_attribute(sai_object_id_t otn_oa_id,
         logger::warn("unsupported otn oa attribute, " + std::to_string(attr->id));
         break;
     }
-    
+
     return rc;
 }
 

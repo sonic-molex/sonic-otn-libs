@@ -58,6 +58,21 @@ public:
             uint32_t attr_count,
             sai_attribute_t *attr_list);
 
+    // OTN device
+    static sai_status_t create_otn_device(
+            sai_object_id_t *otn_device_id,
+            sai_object_id_t switch_id,
+            uint32_t attr_count,
+            const sai_attribute_t *attr_list);
+    static sai_status_t remove_otn_device(sai_object_id_t otn_device_id);
+    static sai_status_t set_otn_device_attribute(
+            sai_object_id_t otn_device_id,
+            const sai_attribute_t *attr);
+    static sai_status_t get_otn_device_attribute(
+            sai_object_id_t otn_device_id,
+            uint32_t attr_count,
+            sai_attribute_t *attr_list);
+
     // OTN attenuator
     static sai_status_t create_otn_attenuator(
             sai_object_id_t *otn_attenuator_id,
@@ -183,6 +198,11 @@ public:
     // Others
     sai_status_t sai_api_query(sai_api_t sai_api_id, void **api_method_table);
     sai_object_type_t sai_object_type_query(sai_object_id_t);
+    sai_status_t sai_query_attribute_capability(
+            sai_object_id_t switch_id,
+            sai_object_type_t object_type,
+            sai_attr_id_t attr_id,
+            sai_attr_capability_t *attr_capability);
 
     //variables
     static std::vector<sai_object_id_t> *switch_list_ptr;
@@ -224,6 +244,14 @@ private:
     static sai_status_t hal_set_otdr_param(uint32_t dev, uint32_t distance_range, uint32_t pulse_width, double sample_res);
     static sai_status_t hal_set_otdr_thr(uint32_t dev, double reflect_thr, double splice_los_thr, double fiber_end_thr);
     static sai_status_t hal_set_otdr_time(uint32_t dev, uint32_t time);
+
+    static void send_alarm_event_data(
+            sai_object_id_t object_id,
+            sai_otn_alarm_severity_t severity,
+            sai_otn_alarm_action_t action,
+            std::string& event_name,
+            std::string& description,
+            std::vector<uint8_t>& raw_data);
 
     std::vector<sai_object_id_t> obj_list;
     switch_metadata metadata;

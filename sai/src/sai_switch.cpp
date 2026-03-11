@@ -105,6 +105,9 @@ sai_adapter::get_switch_attribute(sai_object_id_t switch_id,
         case SAI_SWITCH_ATTR_ACL_TABLE_MAXIMUM_PRIORITY:
             attr_list[i].value.u32 = 1000;
             break;
+        case SAI_SWITCH_ATTR_OTN_ALARM_EVENT_NOTIFY:
+            attr_list[i].value.ptr = (void *) switch_metadata_ptr->otn_alarm_event_ntf;
+            break;
         default:
             logger::warn("unsupported switch attribute " + std::to_string(attr_list[i].id));
             return SAI_STATUS_NOT_IMPLEMENTED;
@@ -146,6 +149,10 @@ sai_adapter::set_switch_attribute(sai_object_id_t switch_id,
     case SAI_SWITCH_ATTR_PORT_STATE_CHANGE_NOTIFY:
         logger::notice("port state notification funciton was set");
         //switch_metadata_ptr->port_state_change_notification_fn = (sai_port_state_change_notification_fn) attr->value.ptr;
+        break;
+    case SAI_SWITCH_ATTR_OTN_ALARM_EVENT_NOTIFY:
+        logger::notice("otn alarm event notification funciton was set");
+        switch_metadata_ptr->otn_alarm_event_ntf = (sai_otn_alarm_event_notification_fn) attr->value.ptr;
         break;
     default:
         logger::warn("unsupported switch attribute " + std::to_string(attr->id));

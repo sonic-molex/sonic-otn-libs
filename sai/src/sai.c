@@ -96,7 +96,7 @@ sai_query_attribute_capability(
         sai_attr_id_t attr_id,
         sai_attr_capability_t *attr_capability)
 {
-    return SAI_STATUS_NOT_IMPLEMENTED;
+    return sai_adapter_query_attribute_capability(sai_adapter, switch_id, object_type, attr_id, attr_capability);
 }
 
 sai_status_t

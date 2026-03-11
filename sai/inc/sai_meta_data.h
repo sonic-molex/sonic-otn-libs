@@ -8,6 +8,7 @@
 #include <set>
 #include <regex>
 #include <optional>
+#include <cstring>
 
 
 #define NULL_HANDLE -1
@@ -122,6 +123,23 @@ public:
     uint32_t dev_type;
     uint32_t dev_index;
     std::string dev_name;
+};
+
+class otn_device_obj : public otn_obj
+{
+public:
+    otn_device_obj(sai_id_map_t &sai_id_map) :
+        otn_obj(sai_id_map, SAI_OBJECT_TYPE_OTN_DEVICE),
+        admin_state(false),
+        alarm_act_time(0),
+        alarm_deact_time(0)
+    {
+    }
+
+    // variable
+    bool admin_state;
+    uint32_t alarm_act_time;
+    uint32_t alarm_deact_time;
 };
 
 class otn_attenuator_obj : public otn_obj
@@ -370,7 +388,7 @@ public:
 class switch_metadata
 { 
 public:
-    switch_metadata() : virtual_id(0x0F000000)
+    switch_metadata() : virtual_id(0x0F000000), otn_alarm_event_ntf(nullptr)
     {
         memset(default_switch_mac, 0, 6);
 
@@ -387,6 +405,9 @@ public:
     sai_object_id_t switch_id;
     sai_mac_t default_switch_mac;
     sai_id_map_t sai_id_map;
+
+    // OTN alarm event notification callback
+    sai_otn_alarm_event_notification_fn otn_alarm_event_ntf;
 
     // id mapping for virtual devices
     std::map<sai_object_type_t, sai_object_id_t> vids;
