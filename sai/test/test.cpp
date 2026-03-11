@@ -68,7 +68,7 @@ void kvm_flow_test()
     rc = sai_api_query((sai_api_t)SAI_API_OTN_OA, (void **)&oa_api);
     cout << "sai_api_query, rc = " << rc << ", oa_api = " << oa_api << endl;
 
-    //OA0
+    // OA0-0: create with full set of attributes
     std::string oa_name = "OA0-0";
     std::cout << "------------------------------------------------------" << std::endl << "creating " << oa_name << std::endl;
 
@@ -77,24 +77,124 @@ void kvm_flow_test()
     attr.id = SAI_OTN_OA_ATTR_NAME;
     memcpy(attr.value.chardata, oa_name.c_str(), oa_name.size() + 1);
     attr_list.push_back(attr);
+    attr.id = SAI_OTN_OA_ATTR_TYPE;
+    attr.value.s32 = SAI_OTN_OA_TYPE_EDFA;
+    attr_list.push_back(attr);
     attr.id = SAI_OTN_OA_ATTR_TARGET_GAIN;
-    attr.value.u32 = 420;
+    attr.value.u32 = 2000;  // 20.00 dB
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_OA_ATTR_MIN_GAIN;
+    attr.value.u32 = 500;   // 5.00 dB
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_OA_ATTR_MAX_GAIN;
+    attr.value.u32 = 3500;  // 35.00 dB
     attr_list.push_back(attr);
     attr.id = SAI_OTN_OA_ATTR_TARGET_GAIN_TILT;
     attr.value.s32 = 40;
     attr_list.push_back(attr);
+    attr.id = SAI_OTN_OA_ATTR_GAIN_RANGE;
+    attr.value.s32 = SAI_OTN_OA_GAIN_RANGE_LOW_GAIN_RANGE;
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_OA_ATTR_AMP_MODE;
+    attr.value.s32 = SAI_OTN_OA_AMP_MODE_CONSTANT_GAIN;
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_OA_ATTR_TARGET_OUTPUT_POWER;
+    attr.value.s32 = 800;   // 8.00 dBm
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_OA_ATTR_MAX_OUTPUT_POWER;
+    attr.value.s32 = 2500;  // 25.00 dBm
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_OA_ATTR_ENABLED;
+    attr.value.booldata = true;
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_OA_ATTR_FIBER_TYPE_PROFILE;
+    attr.value.s32 = SAI_OTN_OA_FIBER_TYPE_PROFILE_SSMF;
+    attr_list.push_back(attr);
+
     rc = oa_api->create_otn_oa(&oa_id, switch_id, attr_list.size(), attr_list.data());
     cout << "create_otn_oa " << oa_name << ", rc = " << rc << ", oa_id = " << oa_id << endl;
 
+    // Set additional attributes after create (test set_otn_oa_attribute)
+    attr.id = SAI_OTN_OA_ATTR_MIN_GAIN;
+    attr.value.u32 = 600;
+    rc = oa_api->set_otn_oa_attribute(oa_id, &attr);
+    cout << "set_otn_oa_attribute MIN_GAIN=600, rc = " << rc << endl;
+    attr.id = SAI_OTN_OA_ATTR_MAX_GAIN;
+    attr.value.u32 = 3200;
+    rc = oa_api->set_otn_oa_attribute(oa_id, &attr);
+    cout << "set_otn_oa_attribute MAX_GAIN=3200, rc = " << rc << endl;
+    attr.id = SAI_OTN_OA_ATTR_TARGET_GAIN_TILT;
+    attr.value.s32 = 50;
+    rc = oa_api->set_otn_oa_attribute(oa_id, &attr);
+    cout << "set_otn_oa_attribute TARGET_GAIN_TILT=50, rc = " << rc << endl;
+    attr.id = SAI_OTN_OA_ATTR_FIBER_TYPE_PROFILE;
+    attr.value.s32 = SAI_OTN_OA_FIBER_TYPE_PROFILE_LEAF;
+    rc = oa_api->set_otn_oa_attribute(oa_id, &attr);
+    cout << "set_otn_oa_attribute FIBER_TYPE_PROFILE=LEAF, rc = " << rc << endl;
+
+    // Get all settable attributes (read-back)
     attr_list.clear();
-    attr.id = SAI_OTN_OA_ATTR_ACTUAL_GAIN;
-    attr.value.s32 = 0;
-    attr_list.push_back(attr);
+    attr_list.push_back({SAI_OTN_OA_ATTR_NAME, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_TYPE, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_TARGET_GAIN, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_MIN_GAIN, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_MAX_GAIN, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_TARGET_GAIN_TILT, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_GAIN_RANGE, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_AMP_MODE, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_TARGET_OUTPUT_POWER, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_MAX_OUTPUT_POWER, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_ENABLED, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_FIBER_TYPE_PROFILE, {0}});
     rc = oa_api->get_otn_oa_attribute(oa_id, attr_list.size(), attr_list.data());
-    cout << "get_otn_oa_attribute, rc = " << rc << ", SAI_OTN_OA_ATTR_ACTUAL_GAIN = " << attr_list[0].value.s32 << endl;
+    cout << "get_otn_oa_attribute (settable), rc = " << rc << endl;
+    if (rc == SAI_STATUS_SUCCESS) {
+        cout << "  NAME = " << attr_list[0].value.chardata << endl;
+        cout << "  TYPE = " << attr_list[1].value.s32 << endl;
+        cout << "  TARGET_GAIN = " << attr_list[2].value.u32 << endl;
+        cout << "  MIN_GAIN = " << attr_list[3].value.u32 << endl;
+        cout << "  MAX_GAIN = " << attr_list[4].value.u32 << endl;
+        cout << "  TARGET_GAIN_TILT = " << attr_list[5].value.s32 << endl;
+        cout << "  GAIN_RANGE = " << attr_list[6].value.s32 << endl;
+        cout << "  AMP_MODE = " << attr_list[7].value.s32 << endl;
+        cout << "  TARGET_OUTPUT_POWER = " << attr_list[8].value.s32 << endl;
+        cout << "  MAX_OUTPUT_POWER = " << attr_list[9].value.s32 << endl;
+        cout << "  ENABLED = " << attr_list[10].value.booldata << endl;
+        cout << "  FIBER_TYPE_PROFILE = " << attr_list[11].value.s32 << endl;
+    }
 
+    // Get read-only and port attributes
+    attr_list.clear();
+    attr_list.push_back({SAI_OTN_OA_ATTR_INGRESS_PORT, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_EGRESS_PORT, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_ACTUAL_GAIN, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_ACTUAL_GAIN_TILT, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_INPUT_POWER_TOTAL, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_INPUT_POWER_C_BAND, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_INPUT_POWER_L_BAND, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_OUTPUT_POWER_TOTAL, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_OUTPUT_POWER_C_BAND, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_OUTPUT_POWER_L_BAND, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_LASER_BIAS_CURRENT, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_OPTICAL_RETURN_LOSS, {0}});
+    rc = oa_api->get_otn_oa_attribute(oa_id, attr_list.size(), attr_list.data());
+    cout << "get_otn_oa_attribute (read-only), rc = " << rc << endl;
+    if (rc == SAI_STATUS_SUCCESS) {
+        cout << "  INGRESS_PORT = " << attr_list[0].value.chardata << endl;
+        cout << "  EGRESS_PORT = " << attr_list[1].value.chardata << endl;
+        cout << "  ACTUAL_GAIN = " << attr_list[2].value.s32 << endl;
+        cout << "  ACTUAL_GAIN_TILT = " << attr_list[3].value.s32 << endl;
+        cout << "  INPUT_POWER_TOTAL = " << attr_list[4].value.s32 << endl;
+        cout << "  INPUT_POWER_C_BAND = " << attr_list[5].value.s32 << endl;
+        cout << "  INPUT_POWER_L_BAND = " << attr_list[6].value.s32 << endl;
+        cout << "  OUTPUT_POWER_TOTAL = " << attr_list[7].value.s32 << endl;
+        cout << "  OUTPUT_POWER_C_BAND = " << attr_list[8].value.s32 << endl;
+        cout << "  OUTPUT_POWER_L_BAND = " << attr_list[9].value.s32 << endl;
+        cout << "  LASER_BIAS_CURRENT = " << attr_list[10].value.s32 << endl;
+        cout << "  OPTICAL_RETURN_LOSS = " << attr_list[11].value.s32 << endl;
+    }
 
-    //OA1
+    // OA0-1: create with minimal + some attributes, then get all
     oa_id = -1;
     oa_name = "OA0-1";
     std::cout << "------------------------------------------------------" << std::endl << "creating " << oa_name << std::endl;
@@ -103,21 +203,59 @@ void kvm_flow_test()
     attr.id = SAI_OTN_OA_ATTR_NAME;
     memcpy(attr.value.chardata, oa_name.c_str(), oa_name.size() + 1);
     attr_list.push_back(attr);
+    attr.id = SAI_OTN_OA_ATTR_TYPE;
+    attr.value.s32 = SAI_OTN_OA_TYPE_FORWARD_RAMAN;
+    attr_list.push_back(attr);
     attr.id = SAI_OTN_OA_ATTR_TARGET_GAIN;
     attr.value.u32 = 520;
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_OA_ATTR_MIN_GAIN;
+    attr.value.u32 = 300;
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_OA_ATTR_MAX_GAIN;
+    attr.value.u32 = 800;
     attr_list.push_back(attr);
     attr.id = SAI_OTN_OA_ATTR_TARGET_GAIN_TILT;
     attr.value.s32 = -50;
     attr_list.push_back(attr);
+    attr.id = SAI_OTN_OA_ATTR_AMP_MODE;
+    attr.value.s32 = SAI_OTN_OA_AMP_MODE_CONSTANT_POWER;
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_OA_ATTR_TARGET_OUTPUT_POWER;
+    attr.value.s32 = 1200;
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_OA_ATTR_MAX_OUTPUT_POWER;
+    attr.value.s32 = 2000;
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_OA_ATTR_ENABLED;
+    attr.value.booldata = false;
+    attr_list.push_back(attr);
+    attr.id = SAI_OTN_OA_ATTR_FIBER_TYPE_PROFILE;
+    attr.value.s32 = SAI_OTN_OA_FIBER_TYPE_PROFILE_TWC;
+    attr_list.push_back(attr);
+
     rc = oa_api->create_otn_oa(&oa_id, switch_id, attr_list.size(), attr_list.data());
     cout << "create_otn_oa " << oa_name << ", rc = " << rc << ", oa_id = " << oa_id << endl;
 
     attr_list.clear();
-    attr.id = SAI_OTN_OA_ATTR_ACTUAL_GAIN;
-    attr.value.s32 = 0;
-    attr_list.push_back(attr);
+    attr_list.push_back({SAI_OTN_OA_ATTR_NAME, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_TYPE, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_TARGET_GAIN, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_ACTUAL_GAIN, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_ACTUAL_GAIN_TILT, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_INGRESS_PORT, {0}});
+    attr_list.push_back({SAI_OTN_OA_ATTR_EGRESS_PORT, {0}});
     rc = oa_api->get_otn_oa_attribute(oa_id, attr_list.size(), attr_list.data());
-    cout << "get_otn_oa_attribute, rc = " << rc << ", SAI_OTN_OA_ATTR_ACTUAL_GAIN = " << attr_list[0].value.s32 << endl;
+    cout << "get_otn_oa_attribute OA0-1, rc = " << rc << endl;
+    if (rc == SAI_STATUS_SUCCESS) {
+        cout << "  NAME = " << attr_list[0].value.chardata
+             << ", TYPE = " << attr_list[1].value.s32
+             << ", TARGET_GAIN = " << attr_list[2].value.u32
+             << ", ACTUAL_GAIN = " << attr_list[3].value.s32
+             << ", ACTUAL_GAIN_TILT = " << attr_list[4].value.s32 << endl;
+        cout << "  INGRESS_PORT = " << attr_list[5].value.chardata
+             << ", EGRESS_PORT = " << attr_list[6].value.chardata << endl;
+    }
 
 
     // ocm
