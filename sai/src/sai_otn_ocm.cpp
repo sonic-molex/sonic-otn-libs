@@ -159,20 +159,20 @@ sai_adapter::get_otn_ocm_attribute(sai_object_id_t otn_ocm_id,
         switch (attr_list[i].id) {
         case SAI_OTN_OCM_ATTR_RAW_DATA:
         {
-            // OCM raw data: one int16_t per slot, units 0.01 dBm.
+            // OCM raw data: one int8_t per slot, units 0.01 dBm.
             static const uint32_t OCM_SLICE_MAX_NUM = 512;
 
-            if (attr_list[i].value.s16list.count < OCM_SLICE_MAX_NUM) {
-                attr_list[i].value.s16list.count = OCM_SLICE_MAX_NUM;
+            if (attr_list[i].value.s8list.count < OCM_SLICE_MAX_NUM) {
+                attr_list[i].value.s8list.count = OCM_SLICE_MAX_NUM;
                 rc = SAI_STATUS_BUFFER_OVERFLOW;
                 break;
             }
 
-            sai_int16_t* buf = attr_list[i].value.s16list.list;
+            sai_int8_t* buf = attr_list[i].value.s8list.list;
             for (uint32_t s = 0; s < OCM_SLICE_MAX_NUM; s++)
-                buf[s] = -3000; // -30.00 dBm dummy value
+                buf[s] = -30; // -30 dBm dummy value
 
-            attr_list[i].value.s16list.count = OCM_SLICE_MAX_NUM;
+            attr_list[i].value.s8list.count = OCM_SLICE_MAX_NUM;
             logger::notice(std::string(__func__) + ": RAW_DATA returned " +
                            std::to_string(OCM_SLICE_MAX_NUM) + " slots");
             break;
