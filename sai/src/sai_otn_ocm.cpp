@@ -1,6 +1,8 @@
 #include "sai_adapter.h"
 #include "dev_util.h"
 #include "virtual_otn_dev_mgr.h"
+#include <algorithm>
+#include <vector>
 
 // OTN OCM
 sai_status_t
@@ -150,9 +152,31 @@ sai_adapter::get_otn_ocm_attribute(sai_object_id_t otn_ocm_id,
 
     sai_status_t rc = SAI_STATUS_SUCCESS;
     //CAST_OBJ(obj, otn_ocm_obj, otn_ocm_id);
+    // auto& mgr = virtual_otn_device_manager::instance();
+    // auto* ocm_dev = mgr.get_device<virtual_otn_ocm_device>(otn_ocm_id);
 
     for (uint32_t i = 0; i < attr_count; i++) {
         switch (attr_list[i].id) {
+        case SAI_OTN_OCM_ATTR_RAW_DATA:
+        {
+            // OCM raw data: one int16_t per slot, units 0.01 dBm.
+            static const uint32_t OCM_SLICE_MAX_NUM = 512;
+
+            if (attr_list[i].value.s16list.count < OCM_SLICE_MAX_NUM) {
+                attr_list[i].value.s16list.count = OCM_SLICE_MAX_NUM;
+                rc = SAI_STATUS_BUFFER_OVERFLOW;
+                break;
+            }
+
+            sai_int16_t* buf = attr_list[i].value.s16list.list;
+            for (uint32_t s = 0; s < OCM_SLICE_MAX_NUM; s++)
+                buf[s] = -3000; // -30.00 dBm dummy value
+
+            attr_list[i].value.s16list.count = OCM_SLICE_MAX_NUM;
+            logger::notice(std::string(__func__) + ": RAW_DATA returned " +
+                           std::to_string(OCM_SLICE_MAX_NUM) + " slots");
+            break;
+        }
         default:
             rc = SAI_STATUS_NOT_SUPPORTED;
             logger::warn("unsupported otn ocm attribute, " + std::to_string(attr_list[i].id));
