@@ -55,7 +55,7 @@ target_link_libraries(${TEST} sai)
 
 #debian
 set(MAJAR_VERSION 1)
-set(MINOR_VERSION 2)
+set(MINOR_VERSION 3)
 set(PATCH_VERSION 0)
 set(CPACK_GENERATOR "DEB")
 set(CPACK_PACKAGE_VERSION_MAJOR "${MAJAR_VERSION}")
